@@ -17,6 +17,7 @@ export interface SocialLinks {
   tiktok?: string;
   facebook?: string;
   instagram?: string;
+  twitter?: string; // X.com / Twitter
   youtube?: string;
   linkedin?: string;
   github?: string;

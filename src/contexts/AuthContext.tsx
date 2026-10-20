@@ -218,6 +218,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     await setDoc(workerRef, updated, { merge: true });
     setWorkerProfile((prev) => (prev ? { ...prev, ...updated } : (updated as WorkerProfile)));
+
+    if (data.photoURL) {
+      try {
+        await updateProfile(currentUser, { photoURL: data.photoURL });
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, { photoURL: data.photoURL, updatedAt: new Date().toISOString() });
+        setUserAccount((prev) => (prev ? { ...prev, photoURL: data.photoURL } : null));
+      } catch (err) {
+        console.warn('Could not sync photo to auth/user doc:', err);
+      }
+    }
   };
 
   const updateClientProfileData = async (data: Partial<ClientProfile>) => {
