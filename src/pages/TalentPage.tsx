@@ -20,7 +20,7 @@ import { getOrCreateConversation } from '../firebase/chatService';
 interface TalentPageProps {
   onSelectWorker: (workerUid: string) => void;
   onOpenAuth: () => void;
-  onNavigateToMessages: () => void;
+  onNavigateToMessages: (convId?: string) => void;
 }
 
 export const TalentPage: React.FC<TalentPageProps> = ({
@@ -76,7 +76,7 @@ export const TalentPage: React.FC<TalentPageProps> = ({
       return;
     }
     try {
-      await getOrCreateConversation(
+      const convId = await getOrCreateConversation(
         {
           uid: currentUser.uid,
           displayName: currentUser.displayName || 'Client',
@@ -90,7 +90,7 @@ export const TalentPage: React.FC<TalentPageProps> = ({
           role: 'worker',
         }
       );
-      onNavigateToMessages();
+      onNavigateToMessages(convId);
     } catch (err) {
       console.error('Failed to open chat with worker:', err);
     }

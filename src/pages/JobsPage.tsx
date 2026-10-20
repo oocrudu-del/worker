@@ -23,7 +23,7 @@ interface JobsPageProps {
   initialCategory?: string;
   onOpenApplyModal: (job: Job) => void;
   onOpenAuth: () => void;
-  onNavigateToMessages: () => void;
+  onNavigateToMessages: (convId?: string) => void;
   selectedJobProp?: Job | null;
 }
 
@@ -86,7 +86,7 @@ export const JobsPage: React.FC<JobsPageProps> = ({
       return;
     }
     try {
-      await getOrCreateConversation(
+      const convId = await getOrCreateConversation(
         {
           uid: currentUser.uid,
           displayName: currentUser.displayName || 'Freelancer',
@@ -101,7 +101,7 @@ export const JobsPage: React.FC<JobsPageProps> = ({
         },
         { id: job.id, title: job.title }
       );
-      onNavigateToMessages();
+      onNavigateToMessages(convId);
     } catch (err) {
       console.error('Failed to open chat with client:', err);
     }

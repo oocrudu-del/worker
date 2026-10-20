@@ -32,6 +32,8 @@ function MainApp() {
   const [staticPolicyType, setStaticPolicyType] = useState<'terms' | 'privacy' | 'guidelines' | null>(null);
   const [searchFilter, setSearchFilter] = useState<string>('');
 
+  const [activeConversationId, setActiveConversationId] = useState<string | undefined>(undefined);
+
   useEffect(() => {
     // 1. Validate connection to Firestore on boot as mandated by skill
     testConnection();
@@ -42,6 +44,12 @@ function MainApp() {
   const handleNavigate = (tab: string, filter?: string) => {
     if (filter) setSearchFilter(filter);
     setCurrentTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateToMessages = (convId?: string) => {
+    if (convId) setActiveConversationId(convId);
+    setCurrentTab('messages');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -96,7 +104,7 @@ function MainApp() {
             initialSearch={searchFilter}
             onOpenApplyModal={handleOpenApplyModal}
             onOpenAuth={() => setAuthModalOpen(true)}
-            onNavigateToMessages={() => setCurrentTab('messages')}
+            onNavigateToMessages={handleNavigateToMessages}
             selectedJobProp={selectedJob}
           />
         )}
@@ -105,14 +113,14 @@ function MainApp() {
           <TalentPage
             onSelectWorker={handleSelectWorker}
             onOpenAuth={() => setAuthModalOpen(true)}
-            onNavigateToMessages={() => setCurrentTab('messages')}
+            onNavigateToMessages={handleNavigateToMessages}
           />
         )}
 
         {currentTab === 'services' && (
           <ServicesPage
             onOpenAuth={() => setAuthModalOpen(true)}
-            onNavigateToMessages={() => setCurrentTab('messages')}
+            onNavigateToMessages={handleNavigateToMessages}
             onSelectWorker={handleSelectWorker}
           />
         )}
@@ -131,13 +139,14 @@ function MainApp() {
           <MessagesPage
             onSelectWorker={handleSelectWorker}
             onOpenAuth={() => setAuthModalOpen(true)}
+            initialConversationId={activeConversationId}
           />
         )}
 
         {currentTab === 'projects' && (
           <ProjectsPage
             onOpenReviewModal={handleOpenReviewModal}
-            onNavigateToMessages={() => setCurrentTab('messages')}
+            onNavigateToMessages={handleNavigateToMessages}
             onOpenAuth={() => setAuthModalOpen(true)}
           />
         )}
@@ -154,7 +163,7 @@ function MainApp() {
         {currentTab === 'profile' && (
           <WorkerProfilePage
             workerUid={selectedWorkerUid}
-            onNavigateToMessages={() => setCurrentTab('messages')}
+            onNavigateToMessages={handleNavigateToMessages}
             onOpenAuth={() => setAuthModalOpen(true)}
           />
         )}

@@ -83,8 +83,8 @@ service cloud.firestore {
       allow update: if isSignedIn() && (request.auth.uid in existing().participantUids);
 
       match /messages/{messageId} {
-        allow get, list: if isSignedIn() && (request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantUids);
-        allow create: if isSignedIn() && incoming().senderUid == request.auth.uid && (request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantUids);
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && incoming().senderUid == request.auth.uid;
         allow update, delete: if isSignedIn() && existing().senderUid == request.auth.uid;
       }
     }

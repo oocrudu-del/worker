@@ -19,7 +19,7 @@ import { getOrCreateConversation } from '../firebase/chatService';
 
 interface ProjectsPageProps {
   onOpenReviewModal: (project: ProjectContract) => void;
-  onNavigateToMessages: () => void;
+  onNavigateToMessages: (convId?: string) => void;
   onOpenAuth: () => void;
 }
 
@@ -72,7 +72,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
     const targetName = isClient ? proj.workerName : proj.clientName;
 
     try {
-      await getOrCreateConversation(
+      const convId = await getOrCreateConversation(
         {
           uid: currentUser.uid,
           displayName: currentUser.displayName || 'User',
@@ -86,7 +86,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
         },
         { id: proj.jobId || proj.id, title: proj.title }
       );
-      onNavigateToMessages();
+      onNavigateToMessages(convId);
     } catch (err) {
       console.error('Error opening chat for contract:', err);
     }

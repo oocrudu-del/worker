@@ -25,7 +25,7 @@ import { getOrCreateConversation } from '../firebase/chatService';
 
 interface WorkerProfilePageProps {
   workerUid?: string;
-  onNavigateToMessages: () => void;
+  onNavigateToMessages: (convId?: string) => void;
   onOpenAuth: () => void;
 }
 
@@ -161,7 +161,7 @@ export const WorkerProfilePage: React.FC<WorkerProfilePageProps> = ({
     if (!profile) return;
 
     try {
-      await getOrCreateConversation(
+      const convId = await getOrCreateConversation(
         {
           uid: currentUser.uid,
           displayName: currentUser.displayName || 'Client',
@@ -175,7 +175,7 @@ export const WorkerProfilePage: React.FC<WorkerProfilePageProps> = ({
           role: 'worker',
         }
       );
-      onNavigateToMessages();
+      onNavigateToMessages(convId);
     } catch (err) {
       console.error('Failed to open message conversation:', err);
     }

@@ -19,7 +19,7 @@ import { getOrCreateConversation } from '../firebase/chatService';
 
 interface ServicesPageProps {
   onOpenAuth: () => void;
-  onNavigateToMessages: () => void;
+  onNavigateToMessages: (convId?: string) => void;
   onSelectWorker: (workerUid: string) => void;
 }
 
@@ -103,7 +103,7 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({
       return;
     }
     try {
-      await getOrCreateConversation(
+      const convId = await getOrCreateConversation(
         {
           uid: currentUser.uid,
           displayName: currentUser.displayName || 'Client',
@@ -118,7 +118,7 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({
         },
         { id: service.id, title: service.title }
       );
-      onNavigateToMessages();
+      onNavigateToMessages(convId);
     } catch (err) {
       console.error('Error opening conversation:', err);
     }
