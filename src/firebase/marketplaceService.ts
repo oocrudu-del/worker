@@ -11,8 +11,10 @@ import {
   where,
   orderBy,
   limit,
+  onSnapshot,
 } from 'firebase/firestore';
 import { db } from './config';
+import { getOrCreateConversation, sanitizeFirestorePayload } from './chatService';
 import {
   Job,
   JobApplication,
@@ -141,7 +143,8 @@ export async function updateApplicationStatus(
   applicationId: string,
   status: JobApplication['status'],
   workerUid?: string,
-  jobTitle?: string
+  jobTitle?: string,
+  clientName?: string
 ): Promise<void> {
   await updateDoc(doc(db, 'jobApplications', applicationId), {
     status,
@@ -149,14 +152,123 @@ export async function updateApplicationStatus(
   });
 
   if (workerUid) {
-    await sendNotification(
-      workerUid,
-      `Application Status Updated: ${status.toUpperCase()}`,
-      `Your proposal for "${jobTitle || 'the project'}" is now marked as ${status}.`,
-      '/dashboard?tab=proposals',
-      'application'
-    );
+    let title = 'Application Status Updated';
+    let body = `Your proposal for "${jobTitle || 'the project'}" is now marked as ${status}.`;
+    let link = '/dashboard';
+
+    if (status === 'accepted') {
+      title = '🎉 Proposal Accepted! Contract Started';
+      body = `Congratulations! ${clientName || 'The client'} accepted your proposal for "${jobTitle || 'the project'}". You can now start work and communicate via Contracts.`;
+      link = '/projects';
+    } else if (status === 'rejected') {
+      title = 'Proposal Not Selected';
+      body = `Your proposal for "${jobTitle || 'the project'}" was reviewed by ${clientName || 'the client'} and not selected.`;
+      link = '/dashboard';
+    } else if (status === 'shortlisted') {
+      title = '⭐ Shortlisted Proposal!';
+      body = `${clientName || 'The client'} has shortlisted your proposal for "${jobTitle || 'the project'}".`;
+      link = '/dashboard';
+    }
+
+    await sendNotification(workerUid, title, body, link, status === 'accepted' ? 'hire' : 'application');
   }
+}
+
+/**
+ * Accept worker application:
+ * 1. Updates application status to 'accepted'
+ * 2. Creates Project Contract in 'projects'
+ * 3. Starts/links direct conversation between client & worker
+ * 4. Sends celebratory notification to the worker
+ */
+export async function acceptJobApplication(
+  app: JobApplication,
+  clientUser: { uid: string; displayName?: string; photoURL?: string }
+): Promise<string> {
+  const clientName = clientUser.displayName || 'Client';
+  const now = new Date().toISOString();
+
+  // 1. Mark application as accepted
+  await updateDoc(doc(db, 'jobApplications', app.id), {
+    status: 'accepted',
+    updatedAt: now,
+  });
+
+  // 2. Create project contract
+  const projectId = await createProjectContract({
+    title: app.jobTitle || 'Freelance Project Contract',
+    jobId: app.jobId,
+    clientUid: clientUser.uid,
+    clientName,
+    workerUid: app.workerUid,
+    workerName: app.workerName,
+    agreedPrice: app.proposedPrice,
+  });
+
+  // 3. Initiate or link 1-on-1 conversation
+  try {
+    await getOrCreateConversation(
+      {
+        uid: clientUser.uid,
+        displayName: clientName,
+        photoURL: clientUser.photoURL,
+        role: 'client',
+      },
+      {
+        uid: app.workerUid,
+        displayName: app.workerName,
+        photoURL: app.workerPhoto,
+        role: 'worker',
+      },
+      { id: app.jobId, title: app.jobTitle || 'Contract' }
+    );
+  } catch (convErr) {
+    console.warn('Could not auto-create conversation on accept:', convErr);
+  }
+
+  // 4. Send prominent notification to worker
+  await sendNotification(
+    app.workerUid,
+    '🎉 Job Application Accepted!',
+    `Congratulations! ${clientName} accepted your application for "${app.jobTitle || 'the project'}". Your contract has officially started and work can begin!`,
+    '/projects',
+    'hire'
+  );
+
+  return projectId;
+}
+
+/**
+ * Reject worker application:
+ * 1. Updates application status to 'rejected'
+ * 2. Sends polite status update notification to the worker
+ */
+export async function rejectJobApplication(
+  app: JobApplication,
+  clientUser: { uid: string; displayName?: string },
+  reason?: string
+): Promise<void> {
+  const clientName = clientUser.displayName || 'Client';
+  const now = new Date().toISOString();
+
+  // 1. Mark application as rejected
+  await updateDoc(doc(db, 'jobApplications', app.id), {
+    status: 'rejected',
+    updatedAt: now,
+  });
+
+  // 2. Notify worker
+  const body = reason
+    ? `Your application for "${app.jobTitle || 'the project'}" was reviewed by ${clientName} and was not selected this time. Feedback: "${reason}".`
+    : `Your application for "${app.jobTitle || 'the project'}" was reviewed by ${clientName} and was not selected this time.`;
+
+  await sendNotification(
+    app.workerUid,
+    'Application Status: Declined',
+    body,
+    '/dashboard',
+    'application'
+  );
 }
 
 /* ========================================================
@@ -375,4 +487,28 @@ export async function getNotifications(uid: string): Promise<AppNotification[]> 
 
 export async function markNotificationAsRead(id: string): Promise<void> {
   await updateDoc(doc(db, 'notifications', id), { read: true });
+}
+
+export function subscribeNotifications(
+  uid: string,
+  callback: (notifs: AppNotification[]) => void
+): () => void {
+  try {
+    const q = query(collection(db, 'notifications'), where('recipientUid', '==', uid));
+    return onSnapshot(
+      q,
+      (snap) => {
+        const notifs = snap.docs
+          .map((d) => ({ id: d.id, ...(d.data() as Omit<AppNotification, 'id'>) }))
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        callback(notifs);
+      },
+      (err) => {
+        console.warn('Real-time notifications subscription notice:', err);
+      }
+    );
+  } catch (err) {
+    console.warn('subscribeNotifications error:', err);
+    return () => {};
+  }
 }

@@ -17,6 +17,10 @@ import {
   Star,
   Eye,
   SlidersHorizontal,
+  Check,
+  X,
+  AlertCircle,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -26,6 +30,8 @@ import {
   getProjectsForUser,
   createProjectContract,
   updateApplicationStatus,
+  acceptJobApplication,
+  rejectJobApplication,
 } from '../firebase/marketplaceService';
 import { Job, JobApplication, ProjectContract } from '../types';
 import { getOrCreateConversation } from '../firebase/chatService';
@@ -35,6 +41,7 @@ interface DashboardPageProps {
   onOpenAuth: () => void;
   onSelectJob: (job: Job) => void;
   onSelectWorker: (workerUid: string) => void;
+  onNavigateToMessages?: (convId?: string) => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
@@ -42,6 +49,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onOpenAuth,
   onSelectJob,
   onSelectWorker,
+  onNavigateToMessages,
 }) => {
   const { currentUser, activeRole, setActiveRole, workerProfile, clientProfile } = useAuth();
   const [workerApplications, setWorkerApplications] = useState<JobApplication[]>([]);
@@ -50,6 +58,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [jobApplicants, setJobApplicants] = useState<JobApplication[]>([]);
   const [projects, setProjects] = useState<ProjectContract[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingAppId, setProcessingAppId] = useState<string | null>(null);
+  const [rejectingApp, setRejectingApp] = useState<JobApplication | null>(null);
+  const [rejectReason, setRejectReason] = useState<string>('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   useEffect(() => {
     if (currentUser) {
@@ -99,48 +118,104 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     }
   };
 
-  const handleHireApplicant = async (app: JobApplication) => {
+  const handleAcceptApplicant = async (app: JobApplication) => {
     if (!currentUser) return;
+    setProcessingAppId(app.id);
 
     try {
-      // 1. Mark application as accepted
-      await updateApplicationStatus(app.id, 'accepted', app.workerUid, app.jobTitle);
-
-      // 2. Create project contract
-      await createProjectContract({
-        title: app.jobTitle || 'Freelance Project Contract',
-        jobId: app.jobId,
-        clientUid: currentUser.uid,
-        clientName: clientProfile?.companyName || clientProfile?.displayName || currentUser.displayName || 'Client',
-        workerUid: app.workerUid,
-        workerName: app.workerName,
-        agreedPrice: app.proposedPrice,
+      const clientName = clientProfile?.companyName || clientProfile?.displayName || currentUser.displayName || 'Client';
+      await acceptJobApplication(app, {
+        uid: currentUser.uid,
+        displayName: clientName,
+        photoURL: currentUser.photoURL || undefined,
       });
 
-      // 3. Open or trigger conversation
-      await getOrCreateConversation(
+      // Update state locally
+      setJobApplicants((prev) =>
+        prev.map((a) => (a.id === app.id ? { ...a, status: 'accepted' } : a))
+      );
+
+      // Refresh projects
+      const projList = await getProjectsForUser(currentUser.uid);
+      setProjects(projList);
+
+      setToast({
+        message: `🎉 Proposal accepted! Contract created and notification sent to ${app.workerName}.`,
+        type: 'success',
+      });
+    } catch (err: any) {
+      console.error('Failed to accept applicant:', err);
+      setToast({
+        message: err.message || 'Failed to accept application.',
+        type: 'error',
+      });
+    } finally {
+      setProcessingAppId(null);
+    }
+  };
+
+  const handleRejectApplicant = async () => {
+    if (!currentUser || !rejectingApp) return;
+    setProcessingAppId(rejectingApp.id);
+
+    try {
+      const clientName = clientProfile?.companyName || clientProfile?.displayName || currentUser.displayName || 'Client';
+      await rejectJobApplication(
+        rejectingApp,
+        {
+          uid: currentUser.uid,
+          displayName: clientName,
+        },
+        rejectReason.trim() || undefined
+      );
+
+      // Update state locally
+      setJobApplicants((prev) =>
+        prev.map((a) => (a.id === rejectingApp.id ? { ...a, status: 'rejected' } : a))
+      );
+
+      setToast({
+        message: `Application from ${rejectingApp.workerName} rejected. Notification sent to worker.`,
+        type: 'info',
+      });
+      setRejectingApp(null);
+      setRejectReason('');
+    } catch (err: any) {
+      console.error('Failed to reject applicant:', err);
+      setToast({
+        message: err.message || 'Failed to reject application.',
+        type: 'error',
+      });
+    } finally {
+      setProcessingAppId(null);
+    }
+  };
+
+  const handleDirectChat = async (targetUid: string, targetName: string, targetPhoto?: string) => {
+    if (!currentUser) return;
+    try {
+      const convId = await getOrCreateConversation(
         {
           uid: currentUser.uid,
           displayName: currentUser.displayName || 'Client',
           photoURL: currentUser.photoURL || undefined,
-          role: 'client',
+          role: activeRole === 'worker' ? 'worker' : 'client',
         },
         {
-          uid: app.workerUid,
-          displayName: app.workerName,
-          photoURL: app.workerPhoto,
-          role: 'worker',
-        },
-        { id: app.jobId, title: app.jobTitle || 'Contract' }
+          uid: targetUid,
+          displayName: targetName,
+          photoURL: targetPhoto,
+          role: activeRole === 'worker' ? 'client' : 'worker',
+        }
       );
-
-      // Refresh applicants list
-      if (selectedJobForApplicants) {
-        handleSelectJobApplicants(selectedJobForApplicants);
+      if (onNavigateToMessages) {
+        onNavigateToMessages(convId);
+      } else {
+        onNavigate('messages');
       }
-      onNavigate('projects');
     } catch (err) {
-      console.error('Failed to hire applicant:', err);
+      console.error('Failed to start chat:', err);
+      onNavigate('messages');
     }
   };
 
@@ -317,31 +392,80 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             ) : (
               <div className="divide-y divide-slate-100">
                 {workerApplications.map((app) => (
-                  <div key={app.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900">{app.jobTitle || 'Job Proposal'}</h4>
-                      <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                        <span>Bid: ${app.proposedPrice}</span>
-                        <span>Delivery: {app.estimatedDays} days</span>
-                        <span>Submitted {new Date(app.createdAt).toLocaleDateString()}</span>
+                  <div key={app.id} className="py-5 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-slate-900">{app.jobTitle || 'Job Proposal'}</h4>
+                          <span
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              app.status === 'accepted'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                : app.status === 'shortlisted'
+                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                                : app.status === 'rejected'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-amber-50 text-amber-800 border border-amber-200'
+                            }`}
+                          >
+                            {app.status === 'accepted' ? '🎉 Accepted' : app.status === 'rejected' ? 'Declined' : 'Under Review'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                          <span>Your Bid: <strong className="text-slate-800">${app.proposedPrice}</strong></span>
+                          <span>•</span>
+                          <span>Timeline: {app.estimatedDays} days</span>
+                          <span>•</span>
+                          <span>Submitted {new Date(app.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {app.status === 'accepted' ? (
+                          <>
+                            <button
+                              onClick={() => onNavigate('projects')}
+                              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span>Go to Contract</span>
+                            </button>
+                            <button
+                              onClick={() => handleDirectChat(app.clientUid, 'Client')}
+                              className="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              <span>Message Client</span>
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => handleDirectChat(app.clientUid, 'Client')}
+                            className="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Contact Client</span>
+                          </button>
+                        )}
                       </div>
                     </div>
 
-                    <div>
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                          app.status === 'accepted'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : app.status === 'shortlisted'
-                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                            : app.status === 'rejected'
-                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}
-                      >
-                        {app.status}
-                      </span>
-                    </div>
+                    {app.status === 'accepted' && (
+                      <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-xl flex items-center justify-between text-xs text-emerald-900">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>
+                            <strong>Congratulations!</strong> The client accepted your proposal. Work has officially commenced.
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => onNavigate('projects')}
+                          className="font-bold underline ml-2 shrink-0 hover:text-emerald-950 cursor-pointer"
+                        >
+                          View Contract & Milestones &rarr;
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -380,6 +504,36 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </div>
           </div>
 
+          {/* Toast / Action Feedback */}
+          {toast && (
+            <div
+              className={`p-4 rounded-2xl border flex items-center justify-between text-xs animate-in fade-in duration-200 ${
+                toast.type === 'success'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                  : toast.type === 'error'
+                  ? 'bg-rose-50 border-rose-200 text-rose-900'
+                  : 'bg-indigo-50 border-indigo-200 text-indigo-900'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {toast.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                ) : toast.type === 'error' ? (
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                ) : (
+                  <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
+                )}
+                <span className="font-medium">{toast.message}</span>
+              </div>
+              <button
+                onClick={() => setToast(null)}
+                className="text-slate-400 hover:text-slate-600 ml-4 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* Two-Column: Left Posted Jobs & Right Applicants Review */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Posted Jobs */}
@@ -417,7 +571,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         <span>
                           ${job.budgetMin} - ${job.budgetMax} ({job.budgetType})
                         </span>
-                        <span className="text-indigo-600 font-semibold">
+                        <span className="text-indigo-600 font-semibold flex items-center gap-1">
+                          <Users className="w-3 h-3" />
                           {job.proposalCount || 0} applicants
                         </span>
                       </div>
@@ -430,22 +585,37 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             {/* Right: Applicants for Selected Job */}
             <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-slate-900">Review Proposals</h3>
-                <span className="text-xs text-slate-400">
-                  {jobApplicants.length} applicants for selected job
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Review Proposals</h3>
+                  <p className="text-xs text-slate-400">
+                    Accept or reject proposals from applicants. When accepted, a contract is started and the worker is notified!
+                  </p>
+                </div>
+                <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">
+                  {jobApplicants.length} applicants
                 </span>
               </div>
 
               {jobApplicants.length === 0 ? (
-                <div className="py-16 text-center text-xs text-slate-400">
-                  No proposals submitted for this job yet. Freelancers can apply through the job marketplace.
+                <div className="py-16 text-center text-xs text-slate-400 space-y-2">
+                  <Users className="w-8 h-8 text-slate-300 mx-auto mb-1" />
+                  <p className="font-medium text-slate-600">No proposals submitted for this job yet</p>
+                  <p className="text-[11px] text-slate-400">
+                    Freelancers will apply through the job marketplace. Once they apply, you can Accept or Reject them here.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {jobApplicants.map((app) => (
                     <div
                       key={app.id}
-                      className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3"
+                      className={`p-5 rounded-2xl border transition-all space-y-3 ${
+                        app.status === 'accepted'
+                          ? 'border-emerald-300 bg-emerald-50/30'
+                          : app.status === 'rejected'
+                          ? 'border-slate-200 bg-slate-50/40 opacity-75'
+                          : 'border-slate-200 bg-white hover:border-slate-300 shadow-2xs'
+                      }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div
@@ -458,47 +628,88 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                               'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'
                             }
                             alt={app.workerName}
-                            className="w-10 h-10 rounded-full object-cover ring-2 ring-white"
+                            className="w-11 h-11 rounded-full object-cover ring-2 ring-white shadow-2xs"
                           />
                           <div>
-                            <h4 className="font-bold text-xs text-slate-900 group-hover:text-indigo-600 transition-colors">
+                            <h4 className="font-bold text-sm text-slate-900 group-hover:text-indigo-600 transition-colors">
                               {app.workerName}
                             </h4>
-                            <p className="text-[11px] text-slate-500">{app.workerHeadline}</p>
+                            <p className="text-xs text-slate-500">{app.workerHeadline || 'Freelancer'}</p>
                           </div>
                         </div>
 
                         <div className="text-right">
-                          <span className="text-sm font-extrabold text-slate-900 block">
+                          <span className="text-base font-black text-slate-900 block">
                             ${app.proposedPrice}
                           </span>
-                          <span className="text-[10px] text-slate-400">in {app.estimatedDays} days</span>
+                          <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1 justify-end">
+                            <Clock className="w-3 h-3 text-slate-400" /> in {app.estimatedDays} days
+                          </span>
                         </div>
                       </div>
 
-                      <p className="text-xs text-slate-600 bg-white p-3 rounded-xl border border-slate-100 italic">
+                      <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 text-xs text-slate-700 leading-relaxed">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Cover Letter:</span>
                         "{app.coverLetter}"
-                      </p>
+                      </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
-                        <span
-                          className={`px-2 py-0.5 rounded-md font-bold text-[10px] uppercase ${
-                            app.status === 'accepted'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-slate-200 text-slate-700'
-                          }`}
-                        >
-                          {app.status}
-                        </span>
-
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 border-t border-slate-200/60 gap-3 text-xs">
                         <div className="flex items-center gap-2">
-                          {app.status !== 'accepted' && (
+                          <span
+                            className={`px-2.5 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${
+                              app.status === 'accepted'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                : app.status === 'rejected'
+                                ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                : 'bg-amber-100 text-amber-900 border border-amber-200'
+                            }`}
+                          >
+                            {app.status === 'accepted' ? '✓ Accepted & Hired' : app.status === 'rejected' ? '✕ Declined' : 'Pending Review'}
+                          </span>
+
+                          <button
+                            onClick={() => handleDirectChat(app.workerUid, app.workerName, app.workerPhoto)}
+                            className="text-slate-600 hover:text-indigo-600 font-medium flex items-center gap-1 text-[11px] cursor-pointer"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Chat</span>
+                          </button>
+                        </div>
+
+                        {/* Accept or Reject Action Options */}
+                        <div className="flex items-center gap-2">
+                          {app.status === 'accepted' ? (
                             <button
-                              onClick={() => handleHireApplicant(app)}
-                              className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs cursor-pointer"
+                              onClick={() => onNavigate('projects')}
+                              className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer"
                             >
-                              Hire & Start Contract
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span>View Contract</span>
                             </button>
+                          ) : (
+                            <>
+                              {/* Accept Button */}
+                              <button
+                                disabled={processingAppId === app.id}
+                                onClick={() => handleAcceptApplicant(app)}
+                                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                <span>{processingAppId === app.id ? 'Accepting...' : 'Accept & Start'}</span>
+                              </button>
+
+                              {/* Reject Button */}
+                              {app.status !== 'rejected' && (
+                                <button
+                                  disabled={processingAppId === app.id}
+                                  onClick={() => setRejectingApp(app)}
+                                  className="px-3 py-1.5 border border-rose-200 hover:bg-rose-50 text-rose-700 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                  <span>Reject</span>
+                                </button>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
@@ -506,6 +717,64 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Confirmation Modal */}
+      {rejectingApp && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-100 p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900">Decline Proposal</h3>
+              <button
+                onClick={() => {
+                  setRejectingApp(null);
+                  setRejectReason('');
+                }}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to decline the proposal from{' '}
+              <strong className="text-slate-900">{rejectingApp.workerName}</strong> for{' '}
+              <strong className="text-slate-900">${rejectingApp.proposedPrice}</strong>? The freelancer will be notified.
+            </p>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Optional Feedback / Reason:
+              </label>
+              <textarea
+                rows={3}
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="E.g., Over budget, chose candidate with specialized framework experience, etc."
+                className="w-full p-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-hidden"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => {
+                  setRejectingApp(null);
+                  setRejectReason('');
+                }}
+                className="px-4 py-2 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={processingAppId === rejectingApp.id}
+                onClick={handleRejectApplicant}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold cursor-pointer"
+              >
+                {processingAppId === rejectingApp.id ? 'Declining...' : 'Confirm Reject'}
+              </button>
             </div>
           </div>
         </div>

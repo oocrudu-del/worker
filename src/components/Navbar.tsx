@@ -17,7 +17,7 @@ import {
   LayoutDashboard,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getNotifications, markNotificationAsRead } from '../firebase/marketplaceService';
+import { getNotifications, markNotificationAsRead, subscribeNotifications } from '../firebase/marketplaceService';
 import { AppNotification } from '../types';
 
 interface NavbarProps {
@@ -36,11 +36,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
 
   useEffect(() => {
     if (currentUser) {
-      getNotifications(currentUser.uid).then(setNotifications);
-      const interval = setInterval(() => {
-        getNotifications(currentUser.uid).then(setNotifications);
-      }, 15000);
-      return () => clearInterval(interval);
+      // Real-time notification updates
+      const unsubscribe = subscribeNotifications(currentUser.uid, (data) => {
+        setNotifications(data);
+      });
+      return () => unsubscribe();
     } else {
       setNotifications([]);
     }
@@ -52,10 +52,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
     await markNotificationAsRead(notif.id);
     setNotifications((prev) => prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n)));
     setNotifDropdownOpen(false);
-    if (notif.link?.includes('dashboard')) {
-      setCurrentTab('dashboard');
-    } else if (notif.link?.includes('projects')) {
+    if (notif.link?.includes('projects') || notif.type === 'hire') {
       setCurrentTab('projects');
+    } else if (notif.link?.includes('dashboard')) {
+      setCurrentTab('dashboard');
     } else if (notif.link?.includes('profile')) {
       setCurrentTab('profile');
     } else {
@@ -226,27 +226,54 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
                             No notifications yet
                           </div>
                         ) : (
-                          notifications.map((notif) => (
-                            <div
-                              key={notif.id}
-                              onClick={() => handleNotificationClick(notif)}
-                              className={`p-3 text-left hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${
-                                !notif.read ? 'bg-indigo-50/50' : ''
-                              }`}
-                            >
-                              <div className="w-2 h-2 mt-1.5 rounded-full bg-indigo-600 shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-semibold text-slate-900">{notif.title}</p>
-                                <p className="text-xs text-slate-600 mt-0.5 line-clamp-2">{notif.body}</p>
-                                <span className="text-[10px] text-slate-400 mt-1 block">
-                                  {new Date(notif.createdAt).toLocaleTimeString([], {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })}
-                                </span>
+                          notifications.map((notif) => {
+                            const isAccepted = notif.type === 'hire' || notif.title.toLowerCase().includes('accepted');
+                            const isRejected = notif.title.toLowerCase().includes('declined') || notif.title.toLowerCase().includes('rejected');
+
+                            return (
+                              <div
+                                key={notif.id}
+                                onClick={() => handleNotificationClick(notif)}
+                                className={`p-3 text-left hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${
+                                  !notif.read ? (isAccepted ? 'bg-emerald-50/70' : isRejected ? 'bg-rose-50/50' : 'bg-indigo-50/50') : ''
+                                }`}
+                              >
+                                <div
+                                  className={`w-2.5 h-2.5 mt-1.5 rounded-full shrink-0 ${
+                                    isAccepted
+                                      ? 'bg-emerald-500 ring-2 ring-emerald-200'
+                                      : isRejected
+                                      ? 'bg-rose-500'
+                                      : 'bg-indigo-600'
+                                  }`}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-1">
+                                    <p className={`text-xs font-bold truncate ${isAccepted ? 'text-emerald-900' : 'text-slate-900'}`}>
+                                      {notif.title}
+                                    </p>
+                                    {!notif.read && (
+                                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-700 shrink-0">
+                                        New
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-slate-600 mt-0.5 line-clamp-2 leading-relaxed">{notif.body}</p>
+                                  <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400">
+                                    <span>
+                                      {new Date(notif.createdAt).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                    </span>
+                                    {isAccepted && (
+                                      <span className="font-semibold text-emerald-700">Open Contract &rarr;</span>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     </div>

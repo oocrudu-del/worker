@@ -105,6 +105,7 @@ function MainApp() {
             onOpenApplyModal={handleOpenApplyModal}
             onOpenAuth={() => setAuthModalOpen(true)}
             onNavigateToMessages={handleNavigateToMessages}
+            onNavigate={handleNavigate}
             selectedJobProp={selectedJob}
           />
         )}
@@ -157,6 +158,7 @@ function MainApp() {
             onOpenAuth={() => setAuthModalOpen(true)}
             onSelectJob={handleSelectJob}
             onSelectWorker={handleSelectWorker}
+            onNavigateToMessages={handleNavigateToMessages}
           />
         )}
 
