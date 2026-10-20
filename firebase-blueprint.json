@@ -1,0 +1,270 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Core authenticated user document",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 255 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string", "maxLength": 1024 },
+        "role": { "type": "string", "enum": ["worker", "client", "both", "pending"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "WorkerProfile": {
+      "title": "WorkerProfile",
+      "description": "Freelancer details, services, skills, portfolio and rates",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "headline": { "type": "string", "maxLength": 200 },
+        "bio": { "type": "string", "maxLength": 4000 },
+        "photoURL": { "type": "string", "maxLength": 1024 },
+        "coverURL": { "type": "string", "maxLength": 1024 },
+        "categories": { "type": "array" },
+        "skills": { "type": "array" },
+        "hourlyRate": { "type": "number" },
+        "experienceLevel": { "type": "string", "enum": ["entry", "intermediate", "expert"] },
+        "availability": { "type": "string", "enum": ["full_time", "part_time", "not_available"] },
+        "location": { "type": "string", "maxLength": 100 },
+        "timezone": { "type": "string", "maxLength": 50 },
+        "languages": { "type": "array" },
+        "socialLinks": { "type": "object" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "completedProjects": { "type": "number" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "displayName", "headline"]
+    },
+    "ClientProfile": {
+      "title": "ClientProfile",
+      "description": "Client details, company name, and project requirements",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "companyName": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "photoURL": { "type": "string", "maxLength": 1024 },
+        "location": { "type": "string", "maxLength": 100 },
+        "website": { "type": "string", "maxLength": 255 },
+        "totalHired": { "type": "number" },
+        "totalSpent": { "type": "number" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "displayName"]
+    },
+    "Job": {
+      "title": "Job",
+      "description": "Client posted project or gig requirement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clientUid": { "type": "string", "maxLength": 128 },
+        "clientName": { "type": "string", "maxLength": 100 },
+        "clientPhoto": { "type": "string", "maxLength": 1024 },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "category": { "type": "string", "maxLength": 100 },
+        "skills": { "type": "array" },
+        "budgetType": { "type": "string", "enum": ["fixed", "hourly"] },
+        "budgetMin": { "type": "number" },
+        "budgetMax": { "type": "number" },
+        "experienceLevel": { "type": "string", "enum": ["entry", "intermediate", "expert"] },
+        "deliveryTime": { "type": "string", "maxLength": 50 },
+        "deadline": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["open", "in_progress", "completed", "closed"] },
+        "proposalCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["clientUid", "title", "description", "category", "budgetType", "status"]
+    },
+    "JobApplication": {
+      "title": "JobApplication",
+      "description": "Worker proposal for a specific job",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "jobId": { "type": "string", "maxLength": 128 },
+        "workerUid": { "type": "string", "maxLength": 128 },
+        "workerName": { "type": "string", "maxLength": 100 },
+        "workerHeadline": { "type": "string", "maxLength": 200 },
+        "workerPhoto": { "type": "string", "maxLength": 1024 },
+        "clientUid": { "type": "string", "maxLength": 128 },
+        "coverLetter": { "type": "string", "maxLength": 3000 },
+        "proposedPrice": { "type": "number" },
+        "estimatedDays": { "type": "number" },
+        "status": { "type": "string", "enum": ["submitted", "shortlisted", "accepted", "rejected", "withdrawn"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["jobId", "workerUid", "clientUid", "coverLetter", "proposedPrice", "status"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "Pre-packaged freelance service offered by a worker",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "workerUid": { "type": "string", "maxLength": 128 },
+        "workerName": { "type": "string", "maxLength": 100 },
+        "workerPhoto": { "type": "string", "maxLength": 1024 },
+        "title": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 4000 },
+        "coverImage": { "type": "string", "maxLength": 1024 },
+        "startingPrice": { "type": "number" },
+        "deliveryDays": { "type": "number" },
+        "revisions": { "type": "number" },
+        "skills": { "type": "array" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["workerUid", "title", "category", "startingPrice"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Messaging thread between two users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "participantUids": { "type": "array" },
+        "participantDetails": { "type": "object" },
+        "lastMessageText": { "type": "string", "maxLength": 2000 },
+        "lastMessageSenderUid": { "type": "string", "maxLength": 128 },
+        "lastMessageTimestamp": { "type": "string" },
+        "relatedJobId": { "type": "string", "maxLength": 128 },
+        "relatedProjectId": { "type": "string", "maxLength": 128 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["participantUids"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Individual message within a conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "senderUid": { "type": "string", "maxLength": 128 },
+        "senderName": { "type": "string", "maxLength": 100 },
+        "senderPhoto": { "type": "string", "maxLength": 1024 },
+        "text": { "type": "string", "maxLength": 4000 },
+        "messageType": { "type": "string", "enum": ["text", "image", "file", "video", "audio"] },
+        "fileUrl": { "type": "string", "maxLength": 2048 },
+        "fileName": { "type": "string", "maxLength": 255 },
+        "fileSize": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["conversationId", "senderUid", "messageType"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "Active contract and project lifecycle management",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "jobId": { "type": "string", "maxLength": 128 },
+        "clientUid": { "type": "string", "maxLength": 128 },
+        "clientName": { "type": "string", "maxLength": 100 },
+        "workerUid": { "type": "string", "maxLength": 128 },
+        "workerName": { "type": "string", "maxLength": 100 },
+        "agreedPrice": { "type": "number" },
+        "deadline": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["awaiting_start", "in_progress", "submitted_for_review", "revision_requested", "completed", "cancelled"] },
+        "clientReviewed": { "type": "boolean" },
+        "workerReviewed": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "completedAt": { "type": "string" }
+      },
+      "required": ["title", "clientUid", "workerUid", "agreedPrice", "status"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Rating and feedback for completed projects",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "projectId": { "type": "string", "maxLength": 128 },
+        "fromUid": { "type": "string", "maxLength": 128 },
+        "fromName": { "type": "string", "maxLength": 100 },
+        "toUid": { "type": "string", "maxLength": 128 },
+        "rating": { "type": "number" },
+        "comment": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["projectId", "fromUid", "toUid", "rating", "comment"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Real-time user notification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "recipientUid": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 150 },
+        "body": { "type": "string", "maxLength": 500 },
+        "link": { "type": "string", "maxLength": 255 },
+        "type": { "type": "string", "maxLength": 50 },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["recipientUid", "title", "body", "read"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Core authenticated user profile"
+    },
+    "/workerProfiles/{userId}": {
+      "schema": "WorkerProfile",
+      "description": "Worker portfolio, skills, and rates"
+    },
+    "/clientProfiles/{userId}": {
+      "schema": "ClientProfile",
+      "description": "Client company info and hiring stats"
+    },
+    "/jobs/{jobId}": {
+      "schema": "Job",
+      "description": "Client job postings"
+    },
+    "/jobApplications/{applicationId}": {
+      "schema": "JobApplication",
+      "description": "Worker proposals for jobs"
+    },
+    "/services/{serviceId}": {
+      "schema": "Service",
+      "description": "Worker freelance gig offerings"
+    },
+    "/conversations/{conversationId}": {
+      "schema": "Conversation",
+      "description": "Direct message conversations"
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages inside a conversation"
+    },
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Active and completed contracts"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Project feedback and ratings"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User notifications"
+    }
+  }
+}

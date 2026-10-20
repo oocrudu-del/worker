@@ -1,0 +1,6 @@
+{
+  "name": "WorkNova - Next-Generation Freelancing Marketplace",
+  "description": "Connect top freelancers with forward-thinking clients. Explore jobs, hire talent, chat in real time, collaborate on projects, and manage contracts seamlessly.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

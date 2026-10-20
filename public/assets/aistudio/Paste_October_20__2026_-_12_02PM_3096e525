@@ -1,0 +1,1271 @@
+# PROJECT: NEXT-GENERATION FREELANCING MARKETPLACE
+
+Act as a senior full-stack developer, UI/UX designer, Firebase engineer, database architect, and cybersecurity expert.
+
+Build a complete, modern, responsive, production-oriented freelancing marketplace website inspired by Upwork, Fiverr, Freelancer, and Messenger.
+
+The platform must connect freelancers (workers) with clients (people who need work done).
+
+IMPORTANT: Do not build just a landing page or a static UI demo. Build a functional application with real authentication, database operations, job posting, freelancer profiles, messaging, file sharing, search, and all necessary pages.
+
+Use Firebase for authentication and backend data storage.
+
+Choose a professional brand name for the platform, and make the name, logo, colors, and branding easy to customize.
+
+==================================================
+
+1. TECHNOLOGY STACK
+   ==================================================
+
+Use:
+
+* React with TypeScript.
+* Vite for the frontend.
+* Tailwind CSS for styling.
+* Firebase Authentication for user authentication.
+* Cloud Firestore for users, profiles, jobs, applications, conversations, messages, notifications, and reviews.
+* Firebase Storage for profile pictures, portfolio images, videos, documents, and message attachments.
+* Firebase Cloud Functions when server-side processing is necessary.
+* Firebase App Check and appropriate security rules.
+* A reliable date/time handling system.
+* Responsive design for desktop, laptop, tablet, and mobile.
+
+Use current, stable, compatible packages.
+
+Organize the code into reusable components, pages, hooks, services, and types.
+
+Never expose Firebase Admin credentials, private API keys, or service-account files in frontend code.
+
+Do not use localStorage as the primary database for users, jobs, conversations, or messages.
+
+==================================================
+2. FIREBASE AUTHENTICATION
+==========================
+
+Implement a complete authentication system.
+
+Features:
+
+* Sign up using email and password.
+* Sign in using email and password.
+* Google Sign-In using Firebase Authentication.
+* Email verification.
+* Forgot-password functionality.
+* Password reset.
+* Sign out.
+* Persistent authentication sessions.
+* Protected routes.
+* Loading indicators and useful error messages.
+* Account profile completion after registration.
+* Secure account deletion and account management.
+
+Users must not be able to access another person's private account information or impersonate other users.
+
+Every registered user must have a unique Firebase UID.
+
+Create a profile document for each authenticated user.
+
+==================================================
+3. ACCOUNT TYPE: WORKER OR CLIENT
+=================================
+
+Immediately after registration, display an attractive account-selection screen.
+
+Ask:
+
+"What would you like to do?"
+
+Option A: I am a Worker / Freelancer.
+Option B: I want to Hire Someone / Client.
+
+Allow users to understand both options before choosing.
+
+A user can initially choose one account type and may enable the other role later from account settings.
+
+Do not create duplicate accounts unnecessarily.
+
+WORKER ACCOUNT:
+
+* Create a professional freelancer profile.
+* Add a profile photo and cover image.
+* Enter full name and professional title.
+* Write a biography.
+* Select skills and services.
+* Set hourly rate or project-based pricing.
+* Choose experience level.
+* Add portfolio projects.
+* Upload portfolio images, videos, PDFs, and documents.
+* Add language proficiency.
+* Select availability.
+* Add location and time zone.
+* Add social media links.
+* Receive client messages.
+* Apply for jobs.
+* Send proposals.
+* Receive job invitations.
+* Manage ongoing and completed projects.
+* Collect client reviews and ratings.
+
+CLIENT ACCOUNT:
+
+* Create a client profile.
+* Add name, profile photo, and optional company name.
+* Describe their business or project.
+* Select the types of services they need.
+* Post jobs and projects.
+* Search and filter workers.
+* View worker portfolios.
+* Save favorite workers.
+* Invite workers to apply.
+* Receive proposals.
+* Message workers.
+* Manage projects and hired workers.
+* Leave reviews after completed projects.
+
+==================================================
+4. WORKER SKILLS AND SERVICE SELECTION
+======================================
+
+After selecting the Worker account type, display a searchable multi-select service category screen.
+
+Workers can select multiple skills.
+
+Include these categories:
+
+A. VIDEO AND AUDIO:
+
+* Video Editing
+* YouTube Video Editing
+* TikTok Video Editing
+* Instagram Reels Editing
+* Facebook Video Editing
+* Shorts Editing
+* Motion Graphics
+* Animation
+* Visual Effects
+* Thumbnail Creation
+* Audio Editing
+* Podcast Editing
+* Voice-over
+* Subtitles and Captions
+
+B. WEBSITE DEVELOPMENT:
+
+* Website Design
+* Website Development
+* Frontend Development
+* Backend Development
+* Full-Stack Development
+* WordPress Development
+* E-commerce Websites
+* Landing Pages
+* Portfolio Websites
+* Website Maintenance
+* Bug Fixing
+* UI/UX Design
+* HTML, CSS, JavaScript
+* React Development
+* Python Development
+
+C. ARTIFICIAL INTELLIGENCE:
+
+* AI Chatbot Development
+* AI Assistant Development
+* AI Agent Development
+* AI Automation
+* AI Website Integration
+* Machine Learning
+* Data Analysis
+* AI Image Generation Workflows
+* AI Video Workflows
+* Prompt Engineering
+* AI Application Development
+
+D. GRAPHIC DESIGN:
+
+* Logo Design
+* Banner Design
+* Social Media Posts
+* Poster Design
+* YouTube Thumbnails
+* Photo Editing
+* Image Retouching
+* Brand Identity
+* UI Design
+
+E. MOBILE APPLICATION DEVELOPMENT:
+
+* Android Apps
+* iOS Apps
+* Flutter
+* React Native
+* App UI/UX
+* App Bug Fixing
+* API Integration
+
+F. WRITING AND TRANSLATION:
+
+* Content Writing
+* Copywriting
+* Blog Writing
+* Nepali Translation
+* English Translation
+* Nepali-English Translation
+* Proofreading
+* Technical Writing
+* Resume Writing
+
+G. DIGITAL MARKETING:
+
+* SEO
+* Social Media Management
+* Facebook Marketing
+* Instagram Marketing
+* TikTok Marketing
+* YouTube SEO
+* Email Marketing
+* Digital Advertising
+
+H. OTHER SERVICES:
+
+* Data Entry
+* Virtual Assistance
+* Excel and Google Sheets
+* Presentation Design
+* Research
+* Cybersecurity Consulting
+* Software Testing
+* IT Support
+* Tutoring
+* Other Custom Services
+
+Allow administrators to add, edit, and remove service categories.
+
+Allow workers to add custom skills.
+
+Workers must be able to select multiple categories, not just one.
+
+==================================================
+5. SOCIAL MEDIA AND CONTACT INFORMATION
+=======================================
+
+Allow users to add their own social media and professional links.
+
+Include:
+
+* WhatsApp number with country code.
+* TikTok profile URL.
+* Facebook profile URL.
+* Instagram profile URL.
+* YouTube channel URL.
+* LinkedIn profile URL.
+* GitHub profile URL.
+* Personal website or portfolio URL.
+* Optional Telegram username.
+* Optional other social links.
+
+Provide separate fields for each platform.
+
+Validate URLs and phone number formats.
+
+Display verified profile information with appropriate icons.
+
+For WhatsApp, provide a button that opens the user's WhatsApp conversation when the user has chosen to make this contact option public.
+
+Use properly encoded WhatsApp click-to-chat links.
+
+Allow users to control which contact links are publicly visible.
+
+Do not automatically publish private phone numbers.
+
+Do not require users to reveal personal contact details to use the internal messaging system.
+
+IMPORTANT: Do not automatically scrape, access, or log into users' social media accounts. Use manually provided profile links or official OAuth integrations when supported.
+
+==================================================
+6. CLIENT JOB POSTING SYSTEM
+============================
+
+Create a complete job-posting feature.
+
+Clients can create jobs with the following fields:
+
+* Job title.
+* Detailed job description.
+* Service category.
+* Required skills.
+* Project budget.
+* Minimum and maximum budget.
+* Hourly or fixed-price payment type.
+* Experience level.
+* Expected delivery time.
+* Project deadline.
+* Number of workers needed.
+* Required portfolio examples.
+* Optional attachments.
+* Job visibility.
+* Application deadline.
+
+Example job titles:
+
+* I need a professional video editor.
+* I need a business website.
+* I need an AI chatbot for my website.
+* I need a logo designer.
+* I need an Android application.
+* I need a social media manager.
+
+After submitting, the job should be saved in Firestore and appear in the public job marketplace.
+
+Add job editing, job deletion, draft saving, publishing, and closing functionality.
+
+Only the authorized job owner can edit or delete their own job.
+
+Display:
+
+* Client profile.
+* Job title and description.
+* Budget.
+* Skills.
+* Posting date.
+* Deadline.
+* Number of proposals.
+* Job status.
+* Apply button.
+* Message Client button.
+* Save Job button.
+
+Provide pagination or efficient loading for large job lists.
+
+==================================================
+7. WORKER JOB APPLICATIONS
+==========================
+
+Workers should be able to browse available jobs and apply.
+
+Create a job application form containing:
+
+* Cover letter.
+* Proposed price.
+* Estimated delivery time.
+* Relevant portfolio links.
+* Optional attachments.
+
+Allow workers to withdraw their applications when appropriate.
+
+Prevent duplicate applications to the same job.
+
+Clients should be able to:
+
+* View applicants.
+* Read proposals.
+* View freelancer profiles.
+* Open a conversation with applicants.
+* Shortlist applicants.
+* Reject applicants.
+* Accept a proposal.
+* Mark a worker as hired.
+
+Update application statuses appropriately.
+
+Example statuses:
+
+* Submitted.
+* Under Review.
+* Shortlisted.
+* Accepted.
+* Rejected.
+* Withdrawn.
+
+Notify users when application statuses change.
+
+==================================================
+8. FREELANCER SERVICE LISTINGS
+==============================
+
+Create an optional service marketplace similar to Fiverr.
+
+Workers can publish individual service listings.
+
+Each listing should include:
+
+* Service title.
+* Category.
+* Description.
+* Cover image.
+* Portfolio images or videos.
+* Starting price.
+* Delivery time.
+* Revision policy.
+* Optional service packages.
+* Skills.
+* Worker profile.
+* Reviews and ratings.
+* Contact or hire button.
+
+Example:
+"I will edit professional YouTube videos."
+"I will build a responsive business website."
+"I will develop an AI chatbot."
+"I will design a professional logo."
+
+Clients can browse, search, save, and contact service providers.
+
+==================================================
+9. PUBLIC HOME PAGE
+===================
+
+Design a beautiful, premium home page.
+
+Include:
+
+* Professional navbar.
+* Logo.
+* Search bar.
+* Explore Services.
+* Find Workers.
+* Find Jobs.
+* Messages.
+* Notifications.
+* Login and Sign Up buttons.
+* User profile menu.
+
+Hero section:
+"Find the Right Talent. Get Your Work Done."
+
+Include two prominent buttons:
+
+* Find a Freelancer.
+* Find Work.
+
+Additional sections:
+
+* Popular service categories.
+* Featured freelancers.
+* Latest jobs.
+* Top-rated workers.
+* Recommended services.
+* How It Works.
+* Why Choose Our Platform.
+* Frequently Asked Questions.
+* Footer with policies and support.
+
+Use real Firestore data instead of hardcoded example users once the application is connected.
+
+Create attractive loading skeletons, empty states, and error states.
+
+==================================================
+10. WORKER DISCOVERY AND SEARCH
+===============================
+
+Build a searchable freelancer directory.
+
+Search by:
+
+* Name.
+* Skill.
+* Category.
+* Service title.
+* Location.
+* Experience level.
+* Hourly rate.
+* Rating.
+* Availability.
+
+Add filters and sorting:
+
+* Most relevant.
+* Highest rated.
+* Lowest price.
+* Highest price.
+* Recently active.
+* Newest profiles.
+
+Each worker card should show:
+
+* Profile photo.
+* Name.
+* Professional title.
+* Main skills.
+* Short description.
+* Starting rate.
+* Rating.
+* Review count.
+* Availability.
+* View Profile button.
+* Message button.
+
+Do not display fake reviews, fake online status, or fabricated earnings.
+
+==================================================
+11. COMPLETE MESSAGING SYSTEM
+=============================
+
+This is one of the most important features.
+
+Build a real-time messaging system using Firebase Authentication, Cloud Firestore, and Firebase Storage.
+
+Create a dedicated Messages page.
+
+Use a modern Messenger-style interface.
+
+DESKTOP LAYOUT:
+
+* Left panel: conversation list.
+* Center panel: active conversation.
+* Right panel: optional contact and shared-media information.
+
+MOBILE LAYOUT:
+
+* Conversation list page.
+* Individual conversation page.
+* Back button to return to conversations.
+
+CONVERSATION LIST:
+
+* User avatar.
+* User name.
+* Last message preview.
+* Last message time.
+* Unread message count.
+* Online indicator, if reliable presence detection is implemented.
+* Typing indicator, if available.
+* Search conversations.
+* Unread messages filter.
+* Archived conversations.
+* Block and report options.
+
+CHAT FEATURES:
+
+* Send and receive text messages in real time.
+* Send photos.
+* Send videos.
+* Send PDFs.
+* Send documents.
+* Send audio recordings.
+* Send supported file attachments.
+* Show upload progress.
+* Retry failed uploads.
+* Download attachments.
+* Display image previews.
+* Play supported videos and audio.
+* Show message timestamps.
+* Mark messages as read.
+* Show delivery status where reliable.
+* Reply to a specific message.
+* Copy text.
+* Delete your own messages where permitted.
+* Edit your own text messages where appropriate.
+* React to messages with emojis.
+* Search messages.
+* Share links.
+* Display attachment file names and sizes.
+* Paginate older messages.
+* Unread message separators.
+* Mute conversations.
+* Archive conversations.
+* Block and report users.
+
+MESSAGE FLOW:
+
+When a client opens a job post, the client should see the job owner.
+
+When a worker clicks "Message Client", create or open a conversation between that worker and the client.
+
+When a client clicks "Message Worker", create or open the conversation between the client and the worker.
+
+When someone clicks the main Messages button, display all their conversations.
+
+When a new person sends a message, their conversation should appear automatically.
+
+Prevent duplicate conversations for the same intended participant pair or group.
+
+A user should only be able to read conversations in which they are an authorized participant.
+
+Use Firebase Storage for file uploads and store attachment metadata in Firestore.
+
+Generate access through authenticated, authorized storage rules rather than publicly exposing private files.
+
+Validate file type and size on the client and enforce security restrictions through trusted backend rules or functions where appropriate.
+
+Use reasonable configurable upload limits and show helpful messages when a file exceeds them.
+
+==================================================
+12. REAL-TIME ONLINE STATUS
+===========================
+
+Implement reliable user presence if feasible.
+
+Show:
+
+* Online.
+* Offline.
+* Last seen.
+
+Do not treat the browser's local state alone as proof that a user is online.
+
+Use a suitable Firebase presence architecture, such as Realtime Database presence with connection state and server timestamps, synchronized with the rest of the application as needed.
+
+Handle browser closing, network disconnection, and reconnecting.
+
+Give users an option to hide their online status or last-seen information.
+
+Never expose exact activity information to unauthorized users.
+
+==================================================
+13. PHOTO, VIDEO, AND DOCUMENT SHARING
+======================================
+
+Users must be able to share media both in conversations and in portfolio/service listings.
+
+Support common formats such as:
+
+* JPG.
+* JPEG.
+* PNG.
+* WEBP.
+* MP4.
+* WEBM.
+* PDF.
+* TXT.
+* DOCX.
+* XLSX.
+* PPTX.
+* Other explicitly supported document formats.
+
+Allow users to:
+
+* Select files from their devices.
+* Preview attachments before sending.
+* Cancel uploads.
+* Remove an attachment before sending.
+* Download shared files.
+* Open image previews.
+* Play supported videos.
+* View a conversation's shared-media gallery.
+* View documents shared in a conversation.
+
+Use Firebase Storage for media storage.
+
+Create a "Shared Media" section inside each conversation.
+
+Organize shared content into:
+
+* Photos.
+* Videos.
+* Documents.
+* Other Files.
+
+Make downloading files easy on both mobile and desktop.
+
+Do not claim that files have been permanently saved to a user's device unless the download actually completes.
+
+==================================================
+14. NOTIFICATIONS
+=================
+
+Create an in-app notification center.
+
+Notify users about:
+
+* New messages.
+* New job applications.
+* Proposal acceptance.
+* Proposal rejection.
+* Job invitations.
+* New reviews.
+* Project status changes.
+* Job updates.
+* Important account alerts.
+
+Include:
+
+* Notification icon.
+* Unread notification badge.
+* Notification list.
+* Mark as read.
+* Mark all as read.
+* Notification preferences.
+
+Use Firebase Cloud Messaging for push notifications where supported and properly configured.
+
+Do not assume push notifications will work without the necessary browser permissions and platform configuration.
+
+==================================================
+15. USER PROFILES AND PORTFOLIOS
+================================
+
+Create public worker profile pages.
+
+Display:
+
+* Profile image.
+* Name.
+* Professional headline.
+* About section.
+* Skills.
+* Service categories.
+* Portfolio.
+* Service listings.
+* Reviews.
+* Ratings.
+* Pricing.
+* Availability.
+* Selected social links.
+* Join date.
+* Contact or Message button.
+
+Workers can add, edit, reorder, and remove portfolio projects.
+
+Each portfolio project may contain:
+
+* Title.
+* Description.
+* Skills used.
+* Project images.
+* Video preview.
+* External project link.
+* Optional document.
+
+Create a separate profile-editing page.
+
+Clients should also have profile pages showing relevant public information and jobs they have posted.
+
+Never expose private account fields publicly.
+
+==================================================
+16. REVIEWS AND RATINGS
+=======================
+
+Implement a trustworthy rating system.
+
+After a project is completed, allow the appropriate client to review the worker.
+
+Where the product design supports reciprocal reviews, allow workers to review clients as well.
+
+Include:
+
+* Star rating from 1 to 5.
+* Written review.
+* Review date.
+* Project reference.
+
+Prevent duplicate reviews for the same eligible project and reviewer.
+
+Only authorized participants in a valid project should be able to submit its review.
+
+Allow users to report abusive or fraudulent reviews.
+
+Calculate average ratings using valid review records.
+
+Never generate fake reviews or fabricated ratings.
+
+==================================================
+17. PROJECT MANAGEMENT
+======================
+
+After a client hires a worker, create a project record.
+
+Include:
+
+* Project title.
+* Client.
+* Worker.
+* Agreed price.
+* Delivery deadline.
+* Project description.
+* Project status.
+* Related job.
+* Related conversation.
+* Created date.
+* Completion date.
+
+Statuses:
+
+* Awaiting Start.
+* In Progress.
+* Submitted for Review.
+* Revision Requested.
+* Completed.
+* Cancelled.
+* Disputed.
+
+Allow authorized participants to view project details and communicate through the associated conversation.
+
+Implement clear state transitions and record important project changes.
+
+Do not allow arbitrary users to mark another user's project completed or change its price.
+
+==================================================
+18. PAYMENTS AND MONETIZATION
+=============================
+
+Design the system so that secure payments can be integrated later.
+
+Potential payment options:
+
+* Fixed-price projects.
+* Hourly projects.
+* Service packages.
+* Platform commission.
+* Transaction history.
+* Invoices.
+* Refund and dispute workflows.
+
+Do not create fake payment success screens.
+
+Do not claim money has been received unless a trusted payment provider confirms the transaction.
+
+For real payments, integrate a supported payment gateway only after its credentials, merchant requirements, webhook verification, and regional availability have been configured.
+
+Do not store raw card numbers or sensitive payment credentials.
+
+If no payment gateway is configured, clearly label the payment system as unavailable or in development.
+
+Keep internal messaging functional even if payments are not configured.
+
+==================================================
+19. ADMIN DASHBOARD
+===================
+
+Build a protected administrator dashboard.
+
+Admin capabilities:
+
+* View platform statistics.
+* Manage user accounts.
+* Suspend or reactivate accounts.
+* Review reported users.
+* Review reported jobs and services.
+* Manage categories and skills.
+* Review reported messages where permitted by a clearly disclosed moderation policy.
+* Manage platform settings.
+* View job and application statistics.
+* Review fraudulent profiles.
+* Manage support requests.
+* Review audit logs.
+
+Use server-enforced administrator authorization.
+
+Never trust a role stored only in browser localStorage or user-editable profile fields.
+
+Create an appropriate protected administrator role using Firebase custom claims or another secure server-side authorization mechanism.
+
+Normal users must not be able to promote themselves to administrators.
+
+==================================================
+20. SECURITY AND PRIVACY
+========================
+
+Implement strong security from the beginning.
+
+Requirements:
+
+* Firebase Firestore Security Rules.
+* Firebase Storage Security Rules.
+* Authentication checks.
+* Authorization checks for every protected operation.
+* Server-side validation for sensitive operations.
+* Safe rendering of user-generated content.
+* Input validation.
+* File size and type validation.
+* Protection against unauthorized profile edits.
+* Protection against unauthorized job edits.
+* Protection against conversation data leaks.
+* Protection against unauthorized file downloads.
+* Rate limiting for sensitive operations where appropriate.
+* Spam prevention.
+* Report and block features.
+* Account deletion.
+* Privacy settings.
+* Terms of Service page.
+* Privacy Policy page.
+* Community Guidelines page.
+
+Do not expose private email addresses, phone numbers, or other personal details unless explicitly intended and permitted by the user's privacy settings.
+
+Do not store authentication passwords in Firestore.
+
+Never place Firebase Admin SDK credentials in frontend files.
+
+Do not use insecure placeholder security rules in the final implementation.
+
+==================================================
+21. USER DASHBOARDS
+===================
+
+Create a personalized dashboard for both roles.
+
+WORKER DASHBOARD:
+
+* Profile completion percentage.
+* Recommended jobs.
+* Recent applications.
+* Application statuses.
+* Active projects.
+* Completed projects.
+* Recent messages.
+* Saved jobs.
+* Profile views, if reliably tracked.
+* Manage portfolio.
+* Manage services.
+* Edit availability.
+
+CLIENT DASHBOARD:
+
+* Posted jobs.
+* Draft jobs.
+* Active projects.
+* Recent applicants.
+* Saved workers.
+* Recent messages.
+* Completed projects.
+* Manage job postings.
+* Manage hired workers.
+
+Show useful empty states when the user has no jobs, applications, or conversations.
+
+==================================================
+22. ADVANCED SEARCH
+===================
+
+Build search pages for jobs, freelancers, and services.
+
+Provide:
+
+* Search suggestions.
+* Category filters.
+* Skill filters.
+* Budget filters.
+* Location filters.
+* Rating filters.
+* Sorting.
+* Pagination.
+* Search result counts.
+
+Use appropriate Firestore queries and indexes.
+
+Do not download the entire database into the browser to perform every search.
+
+Design the search architecture so it can later support a dedicated search engine if required.
+
+==================================================
+23. UI AND DESIGN
+=================
+
+Use a premium, professional design.
+
+Design direction:
+
+* Modern freelancing marketplace.
+* Clean typography.
+* Responsive cards.
+* Smooth but lightweight animations.
+* Attractive profile pages.
+* Consistent spacing.
+* Professional icons.
+* Accessible color contrast.
+* Dark mode and light mode.
+* Desktop sidebar navigation where appropriate.
+* Mobile bottom navigation where appropriate.
+
+Use a coherent color palette with a primary brand color and neutral backgrounds.
+
+Do not copy another platform's exact branding or copyrighted assets.
+
+Avoid excessive glow effects, unnecessary gradients, and distracting animations.
+
+The design must look like a real, polished product rather than a basic template.
+
+==================================================
+24. RESPONSIVE NAVIGATION
+=========================
+
+Desktop navigation should include:
+
+* Home.
+* Find Work.
+* Find Talent.
+* Services.
+* Messages.
+* Notifications.
+* Dashboard.
+* Profile.
+
+Mobile navigation should prioritize:
+
+* Home.
+* Explore.
+* Post or Find Work.
+* Messages.
+* Profile.
+
+Provide accessible menus and clear active states.
+
+Hide options that the current account role cannot use, while also enforcing the same permissions on the backend.
+
+==================================================
+25. DATABASE STRUCTURE
+======================
+
+Create a well-organized Firestore data model.
+
+Suggested collections:
+
+users
+workerProfiles
+clientProfiles
+categories
+jobs
+jobApplications
+services
+portfolios
+conversations
+messages
+projects
+reviews
+notifications
+savedJobs
+savedWorkers
+reports
+supportTickets
+platformSettings
+auditLogs
+
+Define appropriate document fields, references, timestamps, and status values.
+
+Use stable document IDs.
+
+For conversations, maintain a reliable participant list and appropriate authorization checks.
+
+For messages, store:
+
+* Sender UID.
+* Message type.
+* Text content when applicable.
+* Attachment metadata.
+* Created timestamp.
+* Read status or appropriate read receipts.
+* Edit/delete state where supported.
+* Reply reference where applicable.
+
+For files, store metadata and authorized storage references, not unrestricted public access URLs for private attachments.
+
+Avoid duplicating sensitive user data unnecessarily.
+
+Create any required Firestore indexes and document them.
+
+==================================================
+26. FUNCTIONAL REQUIREMENTS
+===========================
+
+Every visible interactive element must have a meaningful function.
+
+Do not create buttons that only look clickable.
+
+Examples:
+
+* Login must authenticate a real user.
+* Google Sign-In must work after Firebase is configured.
+* Sign-up must create a real account.
+* Profile editing must persist changes.
+* Worker skills must be saved.
+* Job creation must write to Firestore.
+* Job applications must persist.
+* Messages must be delivered through the actual backend.
+* Attachments must upload to Firebase Storage.
+* Search must return real records.
+* Reviews must be stored and validated.
+* Notifications must have a real data source.
+* Account settings must save correctly.
+* Logout must terminate the authenticated session.
+
+If an external service requires configuration, show a clear setup message instead of pretending it works.
+
+==================================================
+27. ERROR HANDLING AND PERFORMANCE
+==================================
+
+Implement:
+
+* Loading states.
+* Error boundaries.
+* Form validation.
+* Network error messages.
+* Retry mechanisms where appropriate.
+* Empty states.
+* Upload progress.
+* Message sending states.
+* Pagination.
+* Lazy loading for large media.
+* Image optimization.
+* Responsive layouts.
+* Proper cleanup of listeners and subscriptions.
+* Protection against duplicate event handlers.
+* Sensible Firestore read/write patterns.
+
+Avoid unnecessary repeated database requests.
+
+Do not leak sensitive information in error messages.
+
+==================================================
+28. PROJECT STRUCTURE AND DOCUMENTATION
+=======================================
+
+Organize the code into a maintainable structure.
+
+Example:
+
+src/
+components/
+pages/
+layouts/
+hooks/
+services/
+contexts/
+types/
+utils/
+styles/
+
+Create separate modules for:
+
+* Firebase initialization.
+* Authentication.
+* Profiles.
+* Jobs.
+* Applications.
+* Services.
+* Messaging.
+* File uploads.
+* Notifications.
+* Projects.
+* Reviews.
+* Admin tools.
+
+Also provide:
+
+* package.json.
+* Firebase configuration template.
+* Firestore Security Rules.
+* Firebase Storage Security Rules.
+* Required Firestore indexes.
+* Cloud Functions source when necessary.
+* Environment variable example file.
+* README.md.
+* Installation instructions.
+* Firebase setup instructions.
+* Local development commands.
+* Deployment instructions.
+
+Do not place actual private credentials in example files.
+
+==================================================
+29. TESTING
+===========
+
+Create and run appropriate tests for:
+
+* Authentication.
+* Role selection.
+* Profile creation.
+* Profile updates.
+* Job posting.
+* Job applications.
+* Conversation creation.
+* Message authorization.
+* File upload permissions.
+* Reviews.
+* Project status changes.
+* Admin authorization.
+
+Test that:
+
+* A user cannot read another user's private conversations.
+* A user cannot edit another user's jobs.
+* A user cannot change their own role to admin.
+* An unauthorized user cannot download private attachments.
+* Duplicate applications and duplicate reviews are prevented where applicable.
+* Users can successfully send and receive messages when properly authenticated.
+
+Fix errors found during testing.
+
+Do not claim that tests passed unless they were actually executed.
+
+==================================================
+30. IMPLEMENTATION WORKFLOW
+===========================
+
+Follow this development process:
+
+PHASE 1:
+Inspect the existing project, if one exists. Preserve useful existing code and functionality.
+
+PHASE 2:
+Create the project structure and reusable design system.
+
+PHASE 3:
+Implement Firebase initialization and authentication.
+
+PHASE 4:
+Implement account type selection, user profiles, and social links.
+
+PHASE 5:
+Implement categories, freelancer discovery, and job posting.
+
+PHASE 6:
+Implement job applications and service listings.
+
+PHASE 7:
+Implement real-time conversations, messages, and file sharing.
+
+PHASE 8:
+Implement dashboards, projects, notifications, and reviews.
+
+PHASE 9:
+Implement administration, security rules, and privacy controls.
+
+PHASE 10:
+Test the application, fix bugs, document configuration, and prepare deployment.
+
+Complete the implementation in manageable stages, preserving working features between stages.
+
+If you are operating in an environment that can directly edit project files, create and modify the actual files instead of only providing code snippets.
+
+If the environment has a file or output limit, prioritize a complete working foundation and continue implementing the remaining features in subsequent stages without replacing working code with a static mockup.
+
+==================================================
+31. FINAL ACCEPTANCE CRITERIA
+=============================
+
+The project is only ready for production consideration when:
+
+1. Users can register and log in through Firebase.
+2. Users can select and manage Worker or Client roles.
+3. Workers can select multiple skills.
+4. Workers can create profiles and portfolios.
+5. Users can add and manage their social media links.
+6. Clients can publish and manage jobs.
+7. Workers can search for jobs and apply.
+8. Clients can search for workers.
+9. Users can open conversations from profiles and job posts.
+10. Real-time messaging works.
+11. Photo, video, PDF, and supported document attachments can be uploaded and downloaded securely.
+12. The Messages page lists the user's conversations.
+13. Notifications and unread message counts work correctly.
+14. Project records and reviews are properly authorized.
+15. Administrative access is protected.
+16. The application works on mobile and desktop.
+17. Database and file security rules are configured.
+18. Setup and deployment instructions are documented.
+19. The interface contains no fake functionality presented as working functionality.
+20. No private credentials or sensitive account data are exposed.
+
+FINAL INSTRUCTION:
+
+Start building the actual application now.
+
+Do not stop after producing a design, wireframe, explanation, or project plan.
+
+Inspect the available environment, implement the application in the available files, connect all configured Firebase services, test the implemented features, and report clearly which features are working, which require Firebase configuration, and which remain incomplete.
+
+Deliver the cleanest, most functional, secure, and professional freelancing marketplace possible within the available environment.

@@ -1,0 +1,131 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
+    // Worker Profiles
+    match /workerProfiles/{userId} {
+      allow get, list: if true;
+      allow create, update, delete: if isOwner(userId);
+    }
+
+    // Client Profiles
+    match /clientProfiles/{userId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isOwner(userId);
+    }
+
+    // Jobs
+    match /jobs/{jobId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && incoming().clientUid == request.auth.uid;
+      allow update: if isSignedIn() && (
+        existing().clientUid == request.auth.uid ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['proposalCount', 'updatedAt'])
+      );
+      allow delete: if isSignedIn() && existing().clientUid == request.auth.uid;
+    }
+
+    // Job Applications
+    match /jobApplications/{applicationId} {
+      allow get: if isSignedIn() && (resource.data.workerUid == request.auth.uid || resource.data.clientUid == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.workerUid == request.auth.uid || resource.data.clientUid == request.auth.uid);
+      allow create: if isSignedIn() && incoming().workerUid == request.auth.uid;
+      allow update: if isSignedIn() && (existing().workerUid == request.auth.uid || existing().clientUid == request.auth.uid);
+      allow delete: if isSignedIn() && existing().workerUid == request.auth.uid;
+    }
+
+    // Services (Gigs)
+    match /services/{serviceId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && incoming().workerUid == request.auth.uid;
+      allow update, delete: if isSignedIn() && existing().workerUid == request.auth.uid;
+    }
+
+    // Conversations
+    match /conversations/{conversationId} {
+      allow get: if isSignedIn() && (request.auth.uid in resource.data.participantUids);
+      allow list: if isSignedIn() && (request.auth.uid in resource.data.participantUids);
+      allow create: if isSignedIn() && (request.auth.uid in incoming().participantUids);
+      allow update: if isSignedIn() && (request.auth.uid in existing().participantUids);
+
+      match /messages/{messageId} {
+        allow get, list: if isSignedIn() && (request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantUids);
+        allow create: if isSignedIn() && incoming().senderUid == request.auth.uid && (request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantUids);
+        allow update, delete: if isSignedIn() && existing().senderUid == request.auth.uid;
+      }
+    }
+
+    // Projects (Contracts)
+    match /projects/{projectId} {
+      allow get: if isSignedIn() && (resource.data.clientUid == request.auth.uid || resource.data.workerUid == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.clientUid == request.auth.uid || resource.data.workerUid == request.auth.uid);
+      allow create: if isSignedIn() && (incoming().clientUid == request.auth.uid || incoming().workerUid == request.auth.uid);
+      allow update: if isSignedIn() && (existing().clientUid == request.auth.uid || existing().workerUid == request.auth.uid);
+    }
+
+    // Reviews
+    match /reviews/{reviewId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && incoming().fromUid == request.auth.uid;
+      allow update, delete: if isSignedIn() && existing().fromUid == request.auth.uid;
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow get: if isSignedIn() && resource.data.recipientUid == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.recipientUid == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && existing().recipientUid == request.auth.uid;
+    }
+
+    // Saved Jobs
+    match /savedJobs/{savedId} {
+      allow read, write: if isSignedIn() && (
+        (resource == null && incoming().userId == request.auth.uid) ||
+        (resource != null && existing().userId == request.auth.uid)
+      );
+    }
+
+    // Saved Workers
+    match /savedWorkers/{savedId} {
+      allow read, write: if isSignedIn() && (
+        (resource == null && incoming().userId == request.auth.uid) ||
+        (resource != null && existing().userId == request.auth.uid)
+      );
+    }
+  }
+}
