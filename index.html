@@ -9,6 +9,38 @@
     <meta property="og:description" content="Connect top freelancers with forward-thinking clients. Explore jobs, hire talent, chat in real time, collaborate on projects, and manage contracts seamlessly." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      (function() {
+        try {
+          var _nativeFetch = window.fetch ? window.fetch.bind(window) : null;
+          var _currentFetch = _nativeFetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() {
+              return _currentFetch;
+            },
+            set: function(val) {
+              _currentFetch = typeof val === 'function' ? val : _nativeFetch;
+            },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {
+          console.warn('Polyfill for window.fetch setter:', e);
+        }
+
+        // Suppress uncaught extension errors such as chrome-extension://
+        window.addEventListener('error', function(event) {
+          if (
+            (event.filename && event.filename.indexOf('chrome-extension://') !== -1) ||
+            (event.message && event.message.indexOf('Cannot set property fetch of #<Window>') !== -1)
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return false;
+          }
+        }, true);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

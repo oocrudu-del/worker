@@ -6,6 +6,7 @@ import { AuthModal } from './components/AuthModal';
 import { RoleSelectionModal } from './components/RoleSelectionModal';
 import { ApplyJobModal } from './components/ApplyJobModal';
 import { ReviewModal } from './components/ReviewModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { StaticPagesModal } from './pages/StaticPages';
 import { HomePage } from './pages/HomePage';
 import { JobsPage } from './pages/JobsPage';
@@ -194,8 +195,10 @@ function MainApp() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
